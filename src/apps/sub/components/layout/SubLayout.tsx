@@ -44,8 +44,8 @@ export const SubLayout: React.FC<SubLayoutProps> = ({ children, activeView, onVi
             {!isDesktop && (
                 <div className="h-[60px] flex items-center px-6 border-b border-gray-100 bg-white">
                     <span className="text-lg font-bold text-gray-800">通知管理</span>
-                    <button 
-                        onClick={() => setMobileOpen(false)} 
+                    <button
+                        onClick={() => setMobileOpen(false)}
                         className="ml-auto text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center"
                     >
                         <Icon icon="fa-solid fa-times" />
@@ -79,12 +79,12 @@ export const SubLayout: React.FC<SubLayoutProps> = ({ children, activeView, onVi
                         `}
                         title={collapsed && isDesktop ? item.label : ''}
                     >
-                        <Icon 
-                            icon={item.icon} 
+                        <Icon
+                            icon={item.icon}
                             className={`
                                 ${collapsed && isDesktop ? 'text-lg' : 'mr-3'}
                                 ${activeView === item.id ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}
-                            `} 
+                            `}
                         />
                         {(!collapsed || !isDesktop) && item.label}
                     </button>
@@ -118,7 +118,7 @@ export const SubLayout: React.FC<SubLayoutProps> = ({ children, activeView, onVi
     );
 
     return (
-        <div className="flex h-screen overflow-hidden">
+        <div className="flex h-full overflow-hidden">
             {/* 桌面端侧边栏 */}
             <aside className={`
                 hidden lg:flex flex-col flex-shrink-0
@@ -141,8 +141,8 @@ export const SubLayout: React.FC<SubLayoutProps> = ({ children, activeView, onVi
 
             {/* 移动端遮罩 */}
             {mobileOpen && (
-                <div 
-                    className="fixed inset-0 bg-black/40 z-[65] lg:hidden backdrop-blur-sm" 
+                <div
+                    className="fixed inset-0 bg-black/40 z-[65] lg:hidden backdrop-blur-sm"
                     onClick={() => setMobileOpen(false)}
                 />
             )}

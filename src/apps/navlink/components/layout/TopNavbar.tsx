@@ -37,25 +37,89 @@ const TopNavbar = ({ config, toggleSidebar, mobileOpen, onUserClick, onLogout, i
     // If overlayNavbar is TRUE (default): Transparent at top, Theme Color on scroll.
     // If overlayNavbar is FALSE: Always Theme Color.
     const isOverlayMode = config.hero?.overlayNavbar !== false;
-    const shouldUseTransparent = isOverlayMode && !isScrolled;
+    const navColor = config.theme?.navbarBgColor || '#5d33f0';
+
+    // Transparent mode uses 'bg-transparent' at top.
+    // Hero mode uses frosted glass at top, so it's NOT "transparent" in the CSS class sense.
+    const shouldUseTransparent = isOverlayMode && !isScrolled && navColor !== 'hero';
 
     let navBgStyle: React.CSSProperties = {};
-    if (!shouldUseTransparent) {
-        const navColor = config.theme?.navbarBgColor || '#5d33f0';
-        navBgStyle = {
-            backgroundColor: navColor === 'hero' ? (config.hero?.backgroundColor || '#5d33f0') : (navColor === 'transparent' ? 'transparent' : navColor)
-        };
+    let navClass = '';
+    let textColorClass = 'text-white'; // Default text color
+
+    if (shouldUseTransparent) {
+        // Transparent at top
+        navClass = 'bg-transparent';
+        textColorClass = 'text-white';
+    } else {
+        // Scrolled or Non-Overlay Mode OR Hero Mode at Top
+        if (navColor === 'hero') {
+            if (!isOverlayMode) {
+                // Independent Mode: Solid Hero Color
+                navBgStyle = { backgroundColor: config.hero?.backgroundColor || '#5d33f0' };
+                textColorClass = 'text-white';
+            } else {
+                // Overlay Mode: Frosted Glass Effect
+                if (isScrolled) {
+                    // Scrolled: More opaque glass + Dark Text
+                    navBgStyle = {
+                        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+                        backdropFilter: 'blur(12px)',
+                        WebkitBackdropFilter: 'blur(12px)',
+                        borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+                        color: '#1f2937'
+                    };
+                    textColorClass = 'text-gray-800';
+                } else {
+                    // Top: Highly transparent glass + White Text
+                    navBgStyle = {
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(12px)',
+                        WebkitBackdropFilter: 'blur(12px)',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                    };
+                    textColorClass = 'text-white';
+                }
+            }
+        } else if (navColor === 'transparent') {
+            // Smart Transparent Mode (Scroll Aware)
+            // When scrolled, turn white with dark text (or dark with light text in dark mode)
+            navBgStyle = {
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                color: '#1f2937' // Dark text
+            };
+            textColorClass = 'text-gray-800'; // Switch to dark text
+        } else {
+            // Custom Color
+            navBgStyle = { backgroundColor: navColor };
+            textColorClass = 'text-white';
+        }
     }
 
     // Filter navigation items based on authentication
     const visibleNavItems = config.topNav?.filter(item => isAuthenticated || !item.hidden) || [];
 
+    // Determine dynamic color classes based on the main text color
+    const isDarkText = textColorClass.includes('text-gray-800') || textColorClass.includes('text-black');
+
+    const linkColorClass = isDarkText
+        ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+        : 'text-white/80 hover:text-white hover:bg-white/10';
+
+    const logoColorClass = isDarkText ? 'text-gray-800' : 'text-white';
+    const quoteColorClass = isDarkText ? 'text-gray-500' : 'text-white/70';
+    const iconButtonClass = isDarkText ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white';
+    const mobileMenuButtonClass = isDarkText ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white';
+    const borderColorClass = isDarkText ? 'border-gray-200' : 'border-white/20';
+
     return (
         <nav
             className={`
                 w-full ${isOverlayMode ? 'fixed' : 'sticky'} top-0 left-0 z-40 lg:z-50 transition-all duration-300
-                ${shouldUseTransparent ? 'bg-transparent' : 'shadow-md'}
-                text-white py-2 px-4 md:px-8
+                ${shouldUseTransparent ? '' : 'shadow-md'}
+                ${navClass} ${textColorClass} py-2 px-4 md:px-8
             `}
             style={navBgStyle}
         >
@@ -64,7 +128,7 @@ const TopNavbar = ({ config, toggleSidebar, mobileOpen, onUserClick, onLogout, i
                 <div className="flex items-center gap-4">
                     <button
                         onClick={toggleSidebar}
-                        className="lg:hidden text-white/80 hover:text-white p-2"
+                        className={`lg:hidden p-2 ${mobileMenuButtonClass}`}
                     >
                         <Icon icon="fa-solid fa-bars" className="text-xl" />
                     </button>
@@ -73,7 +137,7 @@ const TopNavbar = ({ config, toggleSidebar, mobileOpen, onUserClick, onLogout, i
                         {config.logoUrl && (
                             <img src={config.logoUrl} alt="Logo" className="h-8 w-auto" />
                         )}
-                        <span className="text-xl font-bold text-white ml-1 hidden sm:block">Navlink</span>
+                        <span className={`text-xl font-bold ml-1 hidden sm:block ${logoColorClass}`}>Navlink</span>
                     </div>
 
                     <div className="hidden lg:flex items-center space-x-0 text-sm font-medium">
@@ -87,7 +151,7 @@ const TopNavbar = ({ config, toggleSidebar, mobileOpen, onUserClick, onLogout, i
                                 <a
                                     key={link.id}
                                     href={link.url}
-                                    className="flex items-center gap-2 px-2 py-2 text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                                    className={`flex items-center gap-2 px-2 py-2 text-sm font-medium rounded-lg transition-all ${linkColorClass}`}
                                 >
                                     {link.icon && <i className={link.icon}></i>}
                                     <span>{link.title}</span>
@@ -115,10 +179,10 @@ const TopNavbar = ({ config, toggleSidebar, mobileOpen, onUserClick, onLogout, i
 
                 {/* Right side: Quote + User/Search */}
                 <div className="flex items-center space-x-4">
-                    <span className="hidden xl:block text-xs text-white/70 mr-4 truncate max-w-[500px]" title={config.headerQuote}>
+                    <span className={`hidden xl:block text-xs mr-4 truncate max-w-[500px] ${quoteColorClass}`} title={config.headerQuote}>
                         {config.headerQuote || '对你竖大拇指的人，不一定是在夸你，也可能是用炮在瞄你。'}
                     </span>
-                    <div className="flex items-center space-x-4 pl-4 sm:border-l sm:border-white/20">
+                    <div className={`flex items-center space-x-4 pl-4 sm:border-l ${borderColorClass}`}>
                         <div
                             className="relative"
                             onMouseEnter={() => {
@@ -132,8 +196,8 @@ const TopNavbar = ({ config, toggleSidebar, mobileOpen, onUserClick, onLogout, i
                         >
                             <button
                                 className={`relative group transition-all ${isAuthenticated
-                                    ? 'text-green-300 hover:text-green-200'
-                                    : 'hover:text-white/70'
+                                    ? 'text-green-500 hover:text-green-600'
+                                    : iconButtonClass
                                     }`}
                                 onClick={onUserClick}
                             >
@@ -184,7 +248,7 @@ const TopNavbar = ({ config, toggleSidebar, mobileOpen, onUserClick, onLogout, i
                             )}
                         </div>
                         <button
-                            className="hover:text-white/70 transition-colors"
+                            className={`${iconButtonClass} transition-colors`}
                             onClick={onSearchClick}
                             aria-label="Open search"
                         >

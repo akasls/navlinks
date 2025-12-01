@@ -84,19 +84,19 @@ export const TopNavSettings: React.FC<AdminTabProps> = ({ config, update }) => {
                                                                                     <div {...provided.dragHandleProps} className="text-gray-400 cursor-grab hover:text-gray-600 px-1">
                                                                                         <Icon icon="fa-solid fa-grip-vertical" />
                                                                                     </div>
-                                                                                    <Input className="w-32" value={child.title} onChange={e => {
+                                                                                    <Input className="!w-32" value={child.title} onChange={e => {
                                                                                         const n = [...config.topNav];
                                                                                         n[idx].children![cIdx].title = e.target.value;
                                                                                         update(c => ({ ...c, topNav: n }));
                                                                                     }} placeholder="标题" />
-                                                                                    <Input className="flex-1" value={child.url} onChange={e => {
+                                                                                    <Input className="flex-1 min-w-0" value={child.url} onChange={e => {
                                                                                         const n = [...config.topNav];
                                                                                         n[idx].children![cIdx].url = e.target.value;
                                                                                         update(c => ({ ...c, topNav: n }));
                                                                                     }} placeholder="链接" />
-                                                                                    <div className="w-32 relative">
+                                                                                    <div className="w-56 relative flex-shrink-0">
                                                                                         <Icon icon={child.icon} className="absolute left-2 top-2.5 text-xs text-gray-400" />
-                                                                                        <Input className="pl-6" value={child.icon} onChange={e => {
+                                                                                        <Input className="pl-6 !w-full" value={child.icon} onChange={e => {
                                                                                             const n = [...config.topNav];
                                                                                             n[idx].children![cIdx].icon = e.target.value;
                                                                                             update(c => ({ ...c, topNav: n }));

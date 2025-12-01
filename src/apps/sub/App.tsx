@@ -301,7 +301,7 @@ function SubApp() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+        <div className="h-screen flex flex-col overflow-hidden bg-gray-50 text-gray-900 font-sans">
             <style>{themeStyles}</style>
 
             {/* Global Overlays */}
@@ -310,63 +310,67 @@ function SubApp() {
             <ReminderToast reminders={reminders} />
 
             {/* Top Navbar (Shared) */}
-            <TopNavbar
-                config={{ ...config, hero: { ...config.hero, overlayNavbar: false } }}
-                toggleSidebar={() => setMobileOpen(!mobileOpen)}
-                mobileOpen={mobileOpen}
-                onUserClick={() => setShowLogin(true)}
-                onLogout={() => {
-                    logout();
-                    // 退出登录后跳转到 Navlink 首页
-                    window.location.href = '/';
-                }}
-                isAuthenticated={isAuthenticated}
-                onSearchClick={() => setShowSearchModal(true)}
-            />
+            <div className="flex-shrink-0 z-50">
+                <TopNavbar
+                    config={{ ...config, hero: { ...config.hero, overlayNavbar: false } }}
+                    toggleSidebar={() => setMobileOpen(!mobileOpen)}
+                    mobileOpen={mobileOpen}
+                    onUserClick={() => setShowLogin(true)}
+                    onLogout={() => {
+                        logout();
+                        // 退出登录后跳转到 Navlink 首页
+                        window.location.href = '/';
+                    }}
+                    isAuthenticated={isAuthenticated}
+                    onSearchClick={() => setShowSearchModal(true)}
+                />
+            </div>
 
             {/* Main Layout */}
-            <SubLayout activeView={activeView} onViewChange={setActiveView} isAuthenticated={isAuthenticated} onShowLogin={() => setShowLogin(true)}>
-                {activeView === 'dashboard' && (
-                    <Dashboard
-                        subscriptions={subscriptions}
-                        reminders={customReminders}
-                        onNavigate={(view) => setActiveView(view as any)}
-                        onAdd={handleAdd}
-                        onEditReminder={handleEditReminder}
-                        onDeleteReminder={handleDeleteReminder}
-                        settings={settings}
-                    />
-                )}
-                {activeView === 'list' && (
-                    <SubscriptionList
-                        subscriptions={subscriptions}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                        onAdd={handleAdd}
-                        settings={settings}
-                    />
-                )}
-                {activeView === 'calendar' && (
-                    <CalendarView subscriptions={subscriptions} settings={settings} />
-                )}
-                {activeView === 'reminders' && (
-                    <ReminderList
-                        reminders={customReminders}
-                        onEdit={handleEditReminder}
-                        onDelete={handleDeleteReminder}
-                        onAdd={handleAddReminder}
-                    />
-                )}
-                {activeView === 'settings' && (
-                    <SettingsPanel
-                        onClose={handleCloseSettings}
-                        subscriptions={subscriptions}
-                        settings={settings}
-                        onUpdateSettings={handleUpdateSettings}
-                        isAuthenticated={isAuthenticated}
-                    />
-                )}
-            </SubLayout>
+            <div className="flex-1 min-h-0 relative">
+                <SubLayout activeView={activeView} onViewChange={setActiveView} isAuthenticated={isAuthenticated} onShowLogin={() => setShowLogin(true)}>
+                    {activeView === 'dashboard' && (
+                        <Dashboard
+                            subscriptions={subscriptions}
+                            reminders={customReminders}
+                            onNavigate={(view) => setActiveView(view as any)}
+                            onAdd={handleAdd}
+                            onEditReminder={handleEditReminder}
+                            onDeleteReminder={handleDeleteReminder}
+                            settings={settings}
+                        />
+                    )}
+                    {activeView === 'list' && (
+                        <SubscriptionList
+                            subscriptions={subscriptions}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                            onAdd={handleAdd}
+                            settings={settings}
+                        />
+                    )}
+                    {activeView === 'calendar' && (
+                        <CalendarView subscriptions={subscriptions} settings={settings} />
+                    )}
+                    {activeView === 'reminders' && (
+                        <ReminderList
+                            reminders={customReminders}
+                            onEdit={handleEditReminder}
+                            onDelete={handleDeleteReminder}
+                            onAdd={handleAddReminder}
+                        />
+                    )}
+                    {activeView === 'settings' && (
+                        <SettingsPanel
+                            onClose={handleCloseSettings}
+                            subscriptions={subscriptions}
+                            settings={settings}
+                            onUpdateSettings={handleUpdateSettings}
+                            isAuthenticated={isAuthenticated}
+                        />
+                    )}
+                </SubLayout>
+            </div>
 
             {/* Modals */}
             <Modal isOpen={showModal} onClose={() => setShowModal(false)} maxWidth="2xl">

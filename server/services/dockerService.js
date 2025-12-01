@@ -22,31 +22,26 @@ function logDebug(message) {
 /**
  * Docker 客户端缓存
  */
-const dockerClients = new Map();
-const sshConnections = new Map(); // SSH连接缓存
+const pendingRefreshes = new Map(); // Key: serverId:type
 
-/**
- * 数据缓存系统
- */
-const dataCache = new Map(); // 格式: key -> { data, timestamp }
-const CACHE_TTL = 10000; // 10秒缓存有效期
-
-function getCacheKey(serverId, type) {
-    return `${serverId}:${type}`;
-}
-
-function getCache(serverId, type) {
+function getCache(serverId, type, allowStale = false) {
     const key = getCacheKey(serverId, type);
     const cached = dataCache.get(key);
     if (!cached) return null;
 
     const age = Date.now() - cached.timestamp;
-    if (age > CACHE_TTL) {
-        dataCache.delete(key);
-        return null;
+    const isStale = age > CACHE_TTL;
+
+    if (isStale) {
+        if (allowStale) {
+            return { data: cached.data, isStale: true };
+        } else {
+            dataCache.delete(key);
+            return null;
+        }
     }
 
-    return cached.data;
+    return { data: cached.data, isStale: false };
 }
 
 function setCache(serverId, type, data) {
@@ -359,46 +354,81 @@ export class DockerService {
     }
 
     /**
-     * 列出所有容器
+     * 列出所有容器 (SWR Enabled)
      */
     static async listContainers(serverId, all = true) {
-        try {
-            logDebug(`listContainers called for ${serverId}, all=${all}`);
+        const cacheKey = `containers_all=${all}`;
+        const refreshKey = `${serverId}:${cacheKey}`;
 
-            // 检查缓存
-            const cacheKey = `containers_all=${all}`;
-            const cached = getCache(serverId, cacheKey);
-            if (cached) {
-                logDebug(`Returning cached containers for ${serverId}`);
-                return cached;
+        // 1. 尝试获取缓存 (允许过期)
+        const cached = getCache(serverId, cacheKey, true);
+
+        // 定义实际的获取函数
+        const fetchContainers = async () => {
+            try {
+                logDebug(`Fetching fresh containers for ${serverId}`);
+                const client = await this.getClient(serverId);
+                const containers = await client.listContainers({ all });
+
+                const mappedContainers = containers.map(c => ({
+                    id: c.Id,
+                    name: c.Names[0]?.replace('/', ''),
+                    image: c.Image,
+                    imageId: c.ImageID,
+                    command: c.Command,
+                    created: c.Created,
+                    state: c.State,
+                    status: c.Status,
+                    ports: c.Ports,
+                    labels: c.Labels,
+                    mounts: c.Mounts,
+                    networks: Object.keys(c.NetworkSettings?.Networks || {})
+                }));
+
+                // 更新缓存
+                setCache(serverId, cacheKey, mappedContainers);
+                logDebug(`Cache updated for ${serverId}`);
+                return mappedContainers;
+            } catch (error) {
+                console.error(`Failed to fetch containers for ${serverId}:`, error);
+                // 如果是连接错误，可能需要清除客户端缓存
+                if (error.message.includes('connect') || error.message.includes('socket')) {
+                    this.clearClientCache(serverId);
+                }
+                throw error;
+            } finally {
+                pendingRefreshes.delete(refreshKey);
             }
+        };
 
-            const client = await this.getClient(serverId);
-            const containers = await client.listContainers({ all });
-            logDebug(`listContainers found ${containers.length} containers for ${serverId}`);
+        // 2. 如果有缓存
+        if (cached) {
+            if (cached.isStale) {
+                // 数据过期：返回旧数据，但触发后台刷新
+                logDebug(`Returning STALE containers for ${serverId}, triggering background refresh`);
 
-            const mappedContainers = containers.map(c => ({
-                id: c.Id,
-                name: c.Names[0]?.replace('/', ''),
-                image: c.Image,
-                imageId: c.ImageID,
-                command: c.Command,
-                created: c.Created,
-                state: c.State,
-                status: c.Status,
-                ports: c.Ports,
-                labels: c.Labels,
-                mounts: c.Mounts,
-                networks: Object.keys(c.NetworkSettings?.Networks || {})
-            }));
-
-            // 缓存结果
-            setCache(serverId, cacheKey, mappedContainers);
-            return mappedContainers;
-        } catch (error) {
-            this.clearClientCache(serverId);
-            throw new Error(`Failed to list containers: ${error.message}`);
+                // 避免重复刷新
+                if (!pendingRefreshes.has(refreshKey)) {
+                    pendingRefreshes.set(refreshKey, fetchContainers().catch(err => {
+                        console.error(`Background refresh failed for ${serverId}:`, err);
+                    }));
+                }
+            } else {
+                logDebug(`Returning FRESH containers for ${serverId}`);
+            }
+            return cached.data;
         }
+
+        // 3. 如果没有缓存 (首次加载)，必须等待
+        logDebug(`No cache for ${serverId}, awaiting fetch`);
+        // 避免并发请求
+        if (pendingRefreshes.has(refreshKey)) {
+            return pendingRefreshes.get(refreshKey);
+        }
+
+        const promise = fetchContainers();
+        pendingRefreshes.set(refreshKey, promise);
+        return promise;
     }
 
     /**
@@ -624,34 +654,64 @@ export class DockerService {
     // ==================== 镜像操作 ====================
 
     /**
-     * 列出镜像
+     * 列出镜像 (SWR Enabled)
      */
     static async listImages(serverId) {
-        try {
-            // 检查缓存
-            const cacheKey = 'images';
-            const cached = getCache(serverId, cacheKey);
-            if (cached) {
-                return cached;
+        const cacheKey = 'images';
+        const refreshKey = `${serverId}:${cacheKey}`;
+
+        // 1. 尝试获取缓存 (允许过期)
+        const cached = getCache(serverId, cacheKey, true);
+
+        // 定义实际的获取函数
+        const fetchImages = async () => {
+            try {
+                logDebug(`Fetching fresh images for ${serverId}`);
+                const client = await this.getClient(serverId);
+                const images = await client.listImages();
+                const mappedImages = images.map(img => ({
+                    id: img.Id,
+                    tags: img.RepoTags || [],
+                    digests: img.RepoDigests || [],
+                    created: img.Created,
+                    size: img.Size,
+                    virtualSize: img.VirtualSize
+                }));
+
+                // 缓存结果
+                setCache(serverId, cacheKey, mappedImages);
+                return mappedImages;
+            } catch (error) {
+                console.error(`Failed to fetch images for ${serverId}:`, error);
+                throw new Error(`Failed to list images: ${error.message}`);
+            } finally {
+                pendingRefreshes.delete(refreshKey);
             }
+        };
 
-            const client = await this.getClient(serverId);
-            const images = await client.listImages();
-            const mappedImages = images.map(img => ({
-                id: img.Id,
-                tags: img.RepoTags || [],
-                digests: img.RepoDigests || [],
-                created: img.Created,
-                size: img.Size,
-                virtualSize: img.VirtualSize
-            }));
+        // 2. 如果有缓存
+        if (cached) {
+            if (cached.isStale) {
+                // 数据过期：返回旧数据，但触发后台刷新
+                logDebug(`Returning STALE images for ${serverId}, triggering background refresh`);
 
-            // 缓存结果
-            setCache(serverId, cacheKey, mappedImages);
-            return mappedImages;
-        } catch (error) {
-            throw new Error(`Failed to list images: ${error.message}`);
+                if (!pendingRefreshes.has(refreshKey)) {
+                    pendingRefreshes.set(refreshKey, fetchImages().catch(err => {
+                        console.error(`Background refresh failed for ${serverId}:`, err);
+                    }));
+                }
+            }
+            return cached.data;
         }
+
+        // 3. 如果没有缓存 (首次加载)，必须等待
+        if (pendingRefreshes.has(refreshKey)) {
+            return pendingRefreshes.get(refreshKey);
+        }
+
+        const promise = fetchImages();
+        pendingRefreshes.set(refreshKey, promise);
+        return promise;
     }
 
     /**

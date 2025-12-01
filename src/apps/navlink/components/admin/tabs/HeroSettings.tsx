@@ -29,8 +29,8 @@ export const HeroSettings: React.FC<AdminTabProps> = ({ config, update }) => {
                                             <div {...provided.dragHandleProps} className="text-gray-400 cursor-grab hover:text-gray-600 px-1">
                                                 <Icon icon="fa-solid fa-grip-vertical" />
                                             </div>
-                                            <Input className="w-1/3" value={link.title} onChange={e => { const n = [...(config.hero.hotSearchLinks || [])]; n[idx].title = e.target.value; update(c => ({ ...c, hero: { ...c.hero, hotSearchLinks: n } })) }} />
-                                            <Input className="flex-1" value={link.url} onChange={e => { const n = [...(config.hero.hotSearchLinks || [])]; n[idx].url = e.target.value; update(c => ({ ...c, hero: { ...c.hero, hotSearchLinks: n } })) }} />
+                                            <Input className="!w-32" value={link.title} onChange={e => { const n = [...(config.hero.hotSearchLinks || [])]; n[idx].title = e.target.value; update(c => ({ ...c, hero: { ...c.hero, hotSearchLinks: n } })) }} placeholder="热词" />
+                                            <Input className="flex-1 min-w-0" value={link.url} onChange={e => { const n = [...(config.hero.hotSearchLinks || [])]; n[idx].url = e.target.value; update(c => ({ ...c, hero: { ...c.hero, hotSearchLinks: n } })) }} placeholder="跳转链接" />
                                             <button onClick={() => { const n = [...(config.hero.hotSearchLinks || [])]; n.splice(idx, 1); update(c => ({ ...c, hero: { ...c.hero, hotSearchLinks: n } })) }} className="text-gray-400 hover:text-red-500 px-2"><Icon icon="fa-solid fa-trash" /></button>
                                         </div>
                                     )}
@@ -53,8 +53,8 @@ export const HeroSettings: React.FC<AdminTabProps> = ({ config, update }) => {
                                             <div {...provided.dragHandleProps} className="text-gray-400 cursor-grab hover:text-gray-600 px-1">
                                                 <Icon icon="fa-solid fa-grip-vertical" />
                                             </div>
-                                            <Input className="w-32" value={se.name} onChange={e => { const n = [...config.searchEngines]; n[idx].name = e.target.value; update(c => ({ ...c, searchEngines: n })) }} />
-                                            <Input className="flex-1" value={se.urlPattern} onChange={e => { const n = [...config.searchEngines]; n[idx].urlPattern = e.target.value; update(c => ({ ...c, searchEngines: n })) }} />
+                                            <Input className="!w-32" value={se.name} onChange={e => { const n = [...config.searchEngines]; n[idx].name = e.target.value; update(c => ({ ...c, searchEngines: n })) }} placeholder="名称" />
+                                            <Input className="flex-1 min-w-0" value={se.urlPattern} onChange={e => { const n = [...config.searchEngines]; n[idx].urlPattern = e.target.value; update(c => ({ ...c, searchEngines: n })) }} placeholder="搜索URL模板" />
                                             <button onClick={() => update(c => ({ ...c, searchEngines: removeItem(c.searchEngines, idx) }))} className="text-gray-400 hover:text-red-500 px-2"><Icon icon="fa-solid fa-trash" /></button>
                                         </div>
                                     )}

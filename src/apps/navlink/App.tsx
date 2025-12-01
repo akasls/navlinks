@@ -200,6 +200,16 @@ function AppContent() {
                 />
             )}
 
+            <TopNavbar
+                config={config}
+                toggleSidebar={() => setMobileOpen(!mobileOpen)}
+                mobileOpen={mobileOpen}
+                onUserClick={handleUserIconClick}
+                onLogout={logout}
+                isAuthenticated={isAuthenticated}
+                onSearchClick={() => setShowSearchModal(true)}
+            />
+
             {/* FULL SCREEN LANDING SECTION with Dynamic Background */}
             <div
                 className={`min-h-screen flex flex-col relative overflow-hidden pb-48 transition-colors duration-500 ${!hasBgImage ? 'bg-[var(--hero-bg)]' : 'bg-gray-800'}`}
@@ -215,20 +225,10 @@ function AppContent() {
                     <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
                 )}
 
-                <TopNavbar
-                    config={config}
-                    toggleSidebar={() => setMobileOpen(!mobileOpen)}
-                    mobileOpen={mobileOpen}
-                    onUserClick={handleUserIconClick}
-                    onLogout={logout}
-                    isAuthenticated={isAuthenticated}
-                    onSearchClick={() => setShowSearchModal(true)}
-                />
-
                 {/* Hero Content - Google-style Search Positioning */}
                 <div className="absolute top-[40%] left-0 right-0 transform -translate-y-1/2 z-30 px-4">
-                    <SearchHero 
-                        config={config} 
+                    <SearchHero
+                        config={config}
                         isAuthenticated={isAuthenticated}
                         onAIModeClick={() => setShowAIChatModal(true)}
                     />

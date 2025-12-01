@@ -24,7 +24,7 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({ subscription
         if (settings?.categories && settings.categories.length > 0) {
             return ['all', ...settings.categories];
         }
-        
+
         // fallback到从订阅中提取
         const cats = new Set<string>();
         subscriptions.forEach(sub => {
@@ -139,6 +139,29 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({ subscription
                         : 'flex flex-col gap-2'
                     }
                 `}>
+                    {/* List Header */}
+                    {viewMode === 'list' && (
+                        <div className="px-3 py-2 flex items-center gap-3 text-xs font-medium text-gray-500 bg-gray-50/80 rounded-lg border border-gray-100">
+                            {/* Placeholder for Status Dot */}
+                            <div className="w-2.5 h-2.5 opacity-0"></div>
+
+                            {/* 8-column Grid matching SubscriptionCard */}
+                            <div className="flex-1 grid grid-cols-8 gap-3 items-center">
+                                <div className="">名称</div>
+                                <div className="text-center">分类</div>
+                                <div className="text-center">类型</div>
+                                <div className="text-center">提醒</div>
+                                <div className="text-center">备注</div>
+                                <div className="text-right">价格</div>
+                                <div className="text-center">开始时间</div>
+                                <div className="text-right">到期时间</div>
+                            </div>
+
+                            {/* Placeholder for Actions (approx width) */}
+                            <div className="w-16 opacity-0"></div>
+                        </div>
+                    )}
+
                     {filteredSubscriptions.map(sub => (
                         <SubscriptionCard
                             key={sub.id}

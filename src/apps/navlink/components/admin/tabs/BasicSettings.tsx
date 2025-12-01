@@ -8,7 +8,7 @@ import { AlertDialog } from '@/src/shared/components/common/AlertDialog';
 
 export const BasicSettings: React.FC<AdminTabProps> = ({ config, update }) => {
     const { alertDialog, showAlert, hideAlert } = useDialogs();
-    const isImageMode = !!config.backgroundImage && config.backgroundImage.trim() !== '';
+    const isImageMode = typeof config.backgroundImage === 'string' && config.backgroundImage.length > 0;
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -276,7 +276,7 @@ export const BasicSettings: React.FC<AdminTabProps> = ({ config, update }) => {
                                     onClick={() => update(c => ({ ...c, theme: { ...c.theme, navbarBgColor: 'hero' } }))}
                                     className={`px-3 py-1 text-xs rounded border transition-colors ${config.theme?.navbarBgColor === 'hero' ? 'bg-blue-50 border-blue-500 text-blue-600 font-bold' : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'}`}
                                 >
-                                    同首屏
+                                    毛玻璃
                                 </button>
                                 <div className="flex items-center gap-1 flex-1">
                                     <Input
