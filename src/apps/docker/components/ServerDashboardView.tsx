@@ -34,19 +34,21 @@ const ServerDashboardView: React.FC<ServerDashboardViewProps> = ({ info, loading
 
     return (
         <div className="space-y-6 animate-fade-in">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
                 <div className="flex items-center gap-4 overflow-hidden">
                     <h2 className="text-xl font-bold text-gray-800 whitespace-nowrap">系统概览</h2>
                     {tabs}
                 </div>
                 {!loading && info && (
-                    <button
-                        onClick={() => loadLogs()}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)] transition"
-                    >
-                        <Icon icon={`fa-solid fa-refresh ${logsLoading ? 'animate-spin' : ''}`} />
-                        <span>刷新</span>
-                    </button>
+                    <div className="flex gap-2 flex-shrink-0 self-end md:self-auto">
+                        <button
+                            onClick={() => loadLogs()}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)] transition"
+                        >
+                            <Icon icon={`fa-solid fa-refresh ${logsLoading ? 'animate-spin' : ''}`} />
+                            <span>刷新</span>
+                        </button>
+                    </div>
                 )}
             </div>
 

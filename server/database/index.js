@@ -47,9 +47,37 @@ export function initDatabase() {
             throw err;
         }
         console.log('[Database] SQLite initialized at:', DB_PATH);
+
+        // 执行迁移
+        migrateDatabase(db);
     });
 
     return db;
+}
+
+/**
+ * 数据库迁移
+ */
+function migrateDatabase(db) {
+    // 检查 docker_servers 表是否缺少 ssh_private_key 字段
+    db.all("PRAGMA table_info(docker_servers)", (err, rows) => {
+        if (err) {
+            console.error('[Database] Failed to check table info:', err);
+            return;
+        }
+
+        const hasPrivateKey = rows.some(row => row.name === 'ssh_private_key');
+        if (!hasPrivateKey) {
+            console.log('[Database] Migrating: Adding ssh_private_key to docker_servers');
+            db.run("ALTER TABLE docker_servers ADD COLUMN ssh_private_key TEXT", (err) => {
+                if (err) {
+                    console.error('[Database] Failed to add ssh_private_key column:', err);
+                } else {
+                    console.log('[Database] Migration successful: ssh_private_key added');
+                }
+            });
+        }
+    });
 }
 
 /**

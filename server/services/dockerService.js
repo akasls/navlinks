@@ -22,7 +22,22 @@ function logDebug(message) {
 /**
  * Docker 客户端缓存
  */
+/**
+ * Docker 客户端缓存
+ */
+const dockerClients = new Map();
+const sshConnections = new Map(); // SSH连接缓存
+
+/**
+ * 数据缓存系统
+ */
+const dataCache = new Map(); // 格式: key -> { data, timestamp }
+const CACHE_TTL = 10000; // 10秒缓存有效期
 const pendingRefreshes = new Map(); // Key: serverId:type
+
+function getCacheKey(serverId, type) {
+    return `${serverId}:${type}`;
+}
 
 function getCache(serverId, type, allowStale = false) {
     const key = getCacheKey(serverId, type);

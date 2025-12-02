@@ -52,15 +52,27 @@ export const TopNavSettings: React.FC<AdminTabProps> = ({ config, update }) => {
                                                         <div className="col-span-5"><Label>链接</Label><Input value={item.url} onChange={e => { const n = [...config.topNav]; n[idx].url = e.target.value; update(c => ({ ...c, topNav: n })) }} /></div>
                                                         <div className="col-span-4"><Label>图标</Label><div className="relative"><Icon icon={item.icon} className="absolute left-3 top-2.5 text-gray-400" /><Input className="pl-8" value={item.icon} onChange={e => { const n = [...config.topNav]; n[idx].icon = e.target.value; update(c => ({ ...c, topNav: n })) }} /></div></div>
                                                     </div>
-                                                    <div className="flex items-center gap-2 px-3 py-2 bg-white rounded">
-                                                        <input
-                                                            type="checkbox"
-                                                            id={`nav-hidden-${item.id}`}
-                                                            checked={item.hidden === true}
-                                                            onChange={(e) => { const n = [...config.topNav]; n[idx].hidden = e.target.checked; update(c => ({ ...c, topNav: n })) }}
-                                                            className="w-4 h-4 text-[var(--theme-primary)] rounded border-gray-300 focus:ring-[var(--theme-primary)] cursor-pointer"
-                                                        />
-                                                        <Label className="!mb-0 cursor-pointer select-none" htmlFor={`nav-hidden-${item.id}`}>未登录时隐藏此导航项</Label>
+                                                    <div className="flex items-center gap-4 px-3 py-2 bg-white rounded">
+                                                        <div className="flex items-center gap-2">
+                                                            <input
+                                                                type="checkbox"
+                                                                id={`nav-hidden-${item.id}`}
+                                                                checked={item.hidden === true}
+                                                                onChange={(e) => { const n = [...config.topNav]; n[idx].hidden = e.target.checked; update(c => ({ ...c, topNav: n })) }}
+                                                                className="w-4 h-4 text-[var(--theme-primary)] rounded border-gray-300 focus:ring-[var(--theme-primary)] cursor-pointer"
+                                                            />
+                                                            <Label className="!mb-0 cursor-pointer select-none" htmlFor={`nav-hidden-${item.id}`}>未登录隐藏</Label>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <input
+                                                                type="checkbox"
+                                                                id={`nav-mobile-${item.id}`}
+                                                                checked={item.showOnMobile === true}
+                                                                onChange={(e) => { const n = [...config.topNav]; n[idx].showOnMobile = e.target.checked; update(c => ({ ...c, topNav: n })) }}
+                                                                className="w-4 h-4 text-[var(--theme-primary)] rounded border-gray-300 focus:ring-[var(--theme-primary)] cursor-pointer"
+                                                            />
+                                                            <Label className="!mb-0 cursor-pointer select-none" htmlFor={`nav-mobile-${item.id}`}>移动端显示</Label>
+                                                        </div>
                                                     </div>
 
                                                     {/* Submenu Editor */}

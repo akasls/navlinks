@@ -8,11 +8,12 @@ interface SubLayoutProps {
     onViewChange: (view: 'dashboard' | 'list' | 'calendar' | 'reminders' | 'settings') => void;
     isAuthenticated?: boolean;
     onShowLogin?: () => void;
+    mobileOpen: boolean;
+    onMobileClose: () => void;
 }
 
-export const SubLayout: React.FC<SubLayoutProps> = ({ children, activeView, onViewChange, isAuthenticated, onShowLogin }) => {
+export const SubLayout: React.FC<SubLayoutProps> = ({ children, activeView, onViewChange, isAuthenticated, onShowLogin, mobileOpen, onMobileClose }) => {
     const { config } = useConfig();
-    const [mobileOpen, setMobileOpen] = useState(false);
     const [collapsed, setCollapsed] = useState(false);
 
     const handleViewChange = (view: 'dashboard' | 'list' | 'calendar' | 'reminders' | 'settings') => {
@@ -24,7 +25,7 @@ export const SubLayout: React.FC<SubLayoutProps> = ({ children, activeView, onVi
         }
         onViewChange(view);
         // 移动端点击后关闭侧边栏
-        if (window.innerWidth < 1024) setMobileOpen(false);
+        if (window.innerWidth < 1024) onMobileClose();
     };
 
     const menuItems = [
@@ -45,7 +46,7 @@ export const SubLayout: React.FC<SubLayoutProps> = ({ children, activeView, onVi
                 <div className="h-[60px] flex items-center px-6 border-b border-gray-100 bg-white">
                     <span className="text-lg font-bold text-gray-800">通知管理</span>
                     <button
-                        onClick={() => setMobileOpen(false)}
+                        onClick={onMobileClose}
                         className="ml-auto text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center"
                     >
                         <Icon icon="fa-solid fa-times" />
@@ -143,17 +144,9 @@ export const SubLayout: React.FC<SubLayoutProps> = ({ children, activeView, onVi
             {mobileOpen && (
                 <div
                     className="fixed inset-0 bg-black/40 z-[65] lg:hidden backdrop-blur-sm"
-                    onClick={() => setMobileOpen(false)}
+                    onClick={onMobileClose}
                 />
             )}
-
-            {/* 移动端汉堡包菜单按钮 */}
-            <button
-                onClick={() => setMobileOpen(true)}
-                className="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-[var(--theme-primary)] text-white rounded-full shadow-lg shadow-[var(--theme-primary)]/30 flex items-center justify-center z-50 hover:scale-110 transition-transform"
-            >
-                <Icon icon="fa-solid fa-bars" className="text-xl" />
-            </button>
 
             {/* Main Content */}
             <main className="flex-1 overflow-y-auto custom-scrollbar pt-2">

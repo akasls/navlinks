@@ -39,6 +39,7 @@ export interface TopNavItem {
   url: string;
   icon: string;
   hidden?: boolean; // If true, hide this nav item when not authenticated
+  showOnMobile?: boolean; // If true, show this nav item on mobile devices
   children?: TopNavItem[]; // Second level menu
 }
 

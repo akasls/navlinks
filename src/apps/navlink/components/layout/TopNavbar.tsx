@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SiteConfig } from '@/src/shared/types';
 import { Icon } from '@/src/shared/components/common/Icon';
 import { ensureProtocol } from '@/src/shared/utils/url';
+import { FloatingMenu } from './FloatingMenu';
 
 const TopNavbar = ({ config, toggleSidebar, mobileOpen, onUserClick, onLogout, isAuthenticated = false, onSearchClick }: {
     config: SiteConfig,
@@ -140,6 +141,8 @@ const TopNavbar = ({ config, toggleSidebar, mobileOpen, onUserClick, onLogout, i
                         <span className={`text-xl font-bold ml-1 hidden sm:block ${logoColorClass}`}>Navlink</span>
                     </div>
 
+
+
                     <div className="hidden lg:flex items-center space-x-0 text-sm font-medium">
                         {visibleNavItems.map((link) => (
                             <div
@@ -256,6 +259,11 @@ const TopNavbar = ({ config, toggleSidebar, mobileOpen, onUserClick, onLogout, i
                         </button>
                     </div>
                 </div>
+            </div>
+
+            {/* Mobile Floating Menu */}
+            <div className="lg:hidden">
+                <FloatingMenu items={visibleNavItems.filter(item => item.showOnMobile)} />
             </div>
         </nav>
     );

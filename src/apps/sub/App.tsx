@@ -328,7 +328,14 @@ function SubApp() {
 
             {/* Main Layout */}
             <div className="flex-1 min-h-0 relative">
-                <SubLayout activeView={activeView} onViewChange={setActiveView} isAuthenticated={isAuthenticated} onShowLogin={() => setShowLogin(true)}>
+                <SubLayout
+                    activeView={activeView}
+                    onViewChange={setActiveView}
+                    isAuthenticated={isAuthenticated}
+                    onShowLogin={() => setShowLogin(true)}
+                    mobileOpen={mobileOpen}
+                    onMobileClose={() => setMobileOpen(false)}
+                >
                     {activeView === 'dashboard' && (
                         <Dashboard
                             subscriptions={subscriptions}

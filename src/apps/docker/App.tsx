@@ -20,6 +20,10 @@ import ServerTabs from './components/ServerTabs';
 import { ContainerFormModal } from './components/ContainerFormModal';
 import { LogViewerModal } from './components/LogViewerModal';
 import { ShellModal } from './components/ShellModal';
+import { ContainerList } from './components/views/ContainerList';
+import { ImageList } from './components/views/ImageList';
+import { NetworkList } from './components/views/NetworkList';
+import { VolumeList } from './components/views/VolumeList';
 
 function DockerApp() {
   const { config, isLoaded, isAuthenticated, logout } = useConfig();
@@ -435,475 +439,116 @@ function DockerApp() {
 
                 {/* Containers View */}
                 {activeView === 'containers' && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-4 overflow-hidden">
-                        <h2 className="text-xl font-bold text-gray-800 whitespace-nowrap">容器列表</h2>
-                        <ServerTabs
-                          servers={servers}
-                          selectedServerId={selectedServer.id}
-                          onSelect={setSelectedServer}
-                          onAddServer={() => setShowServerForm(true)}
-                        />
-                      </div>
-
-                      <div className="flex gap-2 flex-shrink-0">
-                        <button
-                          onClick={() => {
-                            setContainerModalMode('create');
-                            setSelectedImageForRun('');
-                            setShowContainerModal(true);
-                          }}
-                          className="flex items-center gap-2 px-3 py-1.5 bg-[var(--theme-primary)] text-white rounded-lg text-sm hover:brightness-110 transition flex-shrink-0"
-                        >
-                          <Icon icon="fa-solid fa-plus" />
-                          <span>创建容器</span>
-                        </button>
-                        <button
-                          onClick={() => loadContainers()}
-                          className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)] transition flex-shrink-0"
-                        >
-                          <Icon icon="fa-solid fa-refresh" />
-                          <span>刷新</span>
-                        </button>
-                      </div>
-                    </div>
-                    {containersLoading ? (
-                      <div className="flex justify-center py-12">
-                        <div className="w-8 h-8 border-4 border-[var(--theme-primary)] border-t-transparent rounded-full animate-spin"></div>
-                      </div>
-                    ) : containersError ? (
-                      <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
-                        <Icon icon="fa-solid fa-triangle-exclamation" className="text-4xl text-red-500 mb-4" />
-                        <h3 className="text-lg font-bold text-red-700 mb-2">无法加载容器列表</h3>
-                        <p className="text-red-600">{containersError}</p>
-                      </div>
-                    ) : (
-                      <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-left border-collapse">
-                            <thead className="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-500 font-medium">
-                              <tr>
-                                <th className="px-6 py-3">容器名称 / ID</th>
-                                <th className="px-6 py-3">状态</th>
-                                <th className="px-6 py-3">镜像</th>
-                                <th className="px-6 py-3">网络 / 端口</th>
-                                <th className="px-6 py-3">挂载</th>
-                                <th className="px-6 py-3">创建时间</th>
-                                <th className="px-6 py-3 text-right">操作</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                              {containers.length === 0 ? (
-                                <tr>
-                                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                                    暂无容器
-                                  </td>
-                                </tr>
-                              ) : containers.map(container => (
-                                <tr key={container.id} className="hover:bg-gray-50/50 transition-colors group">
-                                  <td className="px-6 py-4">
-                                    <div className="flex items-center gap-3">
-                                      <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${container.state === 'running' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'bg-gray-300'}`}></div>
-                                      <div>
-                                        <div className="font-bold text-gray-800">{container.name}</div>
-                                        <div className="text-xs text-gray-400 font-mono mt-0.5 bg-gray-100 px-1.5 py-0.5 rounded w-fit">{container.id ? container.id.substring(0, 12) : '-'}</div>
-                                      </div>
-                                    </div>
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${container.state === 'running'
-                                      ? 'bg-green-50 text-green-700 border-green-100'
-                                      : 'bg-gray-100 text-gray-600 border-gray-200'
-                                      }`}>
-                                      {container.status}
-                                    </span>
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <div className="flex items-center gap-2 text-sm text-gray-600 max-w-[150px] xl:max-w-[200px]">
-                                      <Icon icon="fa-solid fa-layer-group" className="text-gray-400 text-xs" />
-                                      <span className="truncate" title={container.image}>{container.image}</span>
-                                    </div>
-                                  </td>
-                                  <td className="px-6 py-4 text-xs text-gray-500">
-                                    <div className="flex flex-col gap-1">
-                                      {container.networks && container.networks.length > 0 && (
-                                        <div className="flex items-center gap-1 text-blue-600">
-                                          <Icon icon="fa-solid fa-network-wired" />
-                                          <span>{container.networks.join(', ')}</span>
-                                        </div>
-                                      )}
-                                      {container.ports && container.ports.length > 0 ? (
-                                        <div className="flex flex-col gap-0.5">
-                                          {container.ports.filter(p => p.PublicPort).slice(0, 2).map((p, i) => (
-                                            <span key={i} className="font-mono bg-gray-50 px-1 rounded border border-gray-100 w-fit">
-                                              {p.PublicPort}:{p.PrivatePort}
-                                            </span>
-                                          ))}
-                                          {container.ports.filter(p => p.PublicPort).length > 2 && (
-                                            <span className="text-gray-400">+{container.ports.filter(p => p.PublicPort).length - 2} more</span>
-                                          )}
-                                        </div>
-                                      ) : <span className="text-gray-300">-</span>}
-                                    </div>
-                                  </td>
-                                  <td className="px-6 py-4 text-xs text-gray-500">
-                                    {container.mounts && container.mounts.length > 0 ? (
-                                      <div className="flex flex-col gap-0.5 max-w-[150px]">
-                                        {container.mounts.slice(0, 2).map((m, i) => (
-                                          <div key={i} className="truncate" title={`${m.Source} -> ${m.Destination}`}>
-                                            <span className="font-mono text-gray-400">{m.Destination}</span>
-                                          </div>
-                                        ))}
-                                        {container.mounts.length > 2 && (
-                                          <span className="text-gray-400">+{container.mounts.length - 2} more</span>
-                                        )}
-                                      </div>
-                                    ) : <span className="text-gray-300">-</span>}
-                                  </td>
-                                  <td className="px-6 py-4 text-sm text-gray-600">
-                                    {formatDate(container.created)}
-                                  </td>
-                                  <td className="px-6 py-4 text-right">
-                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                      {container.state === 'running' ? (
-                                        <>
-                                          <button onClick={() => handleContainerAction('restart', container.id)} className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition" title="重启">
-                                            <Icon icon="fa-solid fa-rotate-right" />
-                                          </button>
-                                          <button onClick={() => handleContainerAction('stop', container.id)} className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition" title="停止">
-                                            <Icon icon="fa-solid fa-stop" />
-                                          </button>
-                                          <button onClick={() => openShell(container.id, container.name)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition" title="Shell">
-                                            <Icon icon="fa-solid fa-terminal" />
-                                          </button>
-                                          <button onClick={() => openLogViewer(container.id, container.name)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="日志">
-                                            <Icon icon="fa-solid fa-file-lines" />
-                                          </button>
-                                        </>
-                                      ) : (
-                                        <button onClick={() => handleContainerAction('start', container.id)} className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition" title="启动">
-                                          <Icon icon="fa-solid fa-play" />
-                                        </button>
-                                      )}
-                                      <button onClick={() => handleContainerAction('delete', container.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="删除">
-                                        <Icon icon="fa-solid fa-trash" />
-                                      </button>
-                                    </div>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  <ContainerList
+                    containers={containers}
+                    loading={containersLoading}
+                    error={containersError}
+                    servers={servers}
+                    selectedServerId={selectedServer.id}
+                    onSelectServer={setSelectedServer}
+                    onAddServer={() => setShowServerForm(true)}
+                    onRefresh={loadContainers}
+                    onCreate={() => {
+                      setContainerModalMode('create');
+                      setSelectedImageForRun('');
+                      setShowContainerModal(true);
+                    }}
+                    onAction={handleContainerAction}
+                    onOpenShell={openShell}
+                    onOpenLogs={openLogViewer}
+                  />
                 )}
 
                 {/* Images View */}
                 {activeView === 'images' && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-4 overflow-hidden">
-                        <h2 className="text-xl font-bold text-gray-800 whitespace-nowrap">镜像列表</h2>
-                        <ServerTabs
-                          servers={servers}
-                          selectedServerId={selectedServer.id}
-                          onSelect={setSelectedServer}
-                          onAddServer={() => setShowServerForm(true)}
-                        />
-                      </div>
-                      <div className="flex gap-2 flex-shrink-0">
-                        <button
-                          onClick={() => {
-                            showPrompt(
-                              '下载镜像',
-                              '请输入要下载的镜像名称 (例如: nginx:latest)',
-                              async (value) => {
-                                if (!value.trim()) return;
-                                try {
-                                  await pullImage(value.trim());
-                                  showAlert('下载成功', `镜像 ${value} 已成功下载`, 'success');
-                                } catch (e: any) {
-                                  showAlert('下载失败', e.message, 'error');
-                                } finally {
-                                  hidePrompt();
-                                }
-                              },
-                              '',
-                              'image:tag'
-                            );
-                          }}
-                          className="px-4 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-100 text-sm transition flex items-center gap-2"
-                        >
-                          <Icon icon="fa-solid fa-cloud-arrow-down" />
-                          <span>下载镜像</span>
-                        </button>
-                        <button onClick={() => pruneImages()} className="px-4 py-2 bg-orange-50 text-orange-600 border border-orange-200 rounded-lg hover:bg-orange-100 text-sm transition">清理未使用</button>
-                        <button onClick={() => loadImages()} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)] transition">
-                          <Icon icon="fa-solid fa-refresh" />
-                          <span>刷新</span>
-                        </button>
-                      </div>
-                    </div>
-                    {imagesLoading ? (
-                      <div className="flex justify-center py-12">
-                        <div className="w-8 h-8 border-4 border-[var(--theme-primary)] border-t-transparent rounded-full animate-spin"></div>
-                      </div>
-                    ) : imagesError ? (
-                      <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
-                        <Icon icon="fa-solid fa-triangle-exclamation" className="text-4xl text-red-500 mb-4" />
-                        <h3 className="text-lg font-bold text-red-700 mb-2">无法加载镜像列表</h3>
-                        <p className="text-red-600">{imagesError}</p>
-                      </div>
-                    ) : (
-                      <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
-                        <table className="w-full text-left border-collapse">
-                          <thead className="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-500 font-medium">
-                            <tr>
-                              <th className="px-6 py-3">镜像名称 / Tag</th>
-                              <th className="px-6 py-3">镜像 ID</th>
-                              <th className="px-6 py-3">大小</th>
-                              <th className="px-6 py-3">创建时间</th>
-                              <th className="px-6 py-3 text-right">操作</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-100">
-                            {images.length === 0 ? (
-                              <tr>
-                                <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                                  暂无镜像
-                                </td>
-                              </tr>
-                            ) : images.map(image => (
-                              <tr key={image.id} className="hover:bg-gray-50/50 transition-colors group">
-                                <td className="px-6 py-4">
-                                  <div className="flex flex-col">
-                                    <span className="font-bold text-gray-800">{image.tags[0]?.split(':')[0] || '<none>'}</span>
-                                    <div className="flex flex-wrap gap-1 mt-1">
-                                      {image.tags.map(tag => (
-                                        <span key={tag} className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full border border-blue-100">
-                                          {tag.split(':')[1] || 'latest'}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                  <div className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded w-fit">
-                                    {image.id.substring(7, 19)}
-                                  </div>
-                                </td>
-                                <td className="px-6 py-4 text-sm text-gray-600 font-mono">
-                                  {formatBytes(image.size)}
-                                </td>
-                                <td className="px-6 py-4 text-sm text-gray-600">
-                                  {formatDate(image.created)}
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                  <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button
-                                      onClick={() => {
-                                        const repoTag = image.tags[0];
-                                        if (repoTag && repoTag !== '<none>:<none>') {
-                                          showConfirm('确认更新', `确定要拉取最新版本的 ${repoTag} 吗？`, async () => {
-                                            try {
-                                              await pullImage(repoTag);
-                                              showAlert('更新成功', '镜像已更新到最新版本', 'success');
-                                            } catch (e: any) {
-                                              showAlert('更新失败', e.message, 'error');
-                                            } finally {
-                                              hideConfirm();
-                                            }
-                                          }, 'primary');
-                                        } else {
-                                          showAlert('无法更新', '该镜像没有有效的标签', 'error');
-                                        }
-                                      }}
-                                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                      title="更新 (Pull)"
-                                    >
-                                      <Icon icon="fa-solid fa-cloud-arrow-down" />
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        setContainerModalMode('run');
-                                        setSelectedImageForRun(image.tags[0] !== '<none>:<none>' ? image.tags[0] : image.id);
-                                        setShowContainerModal(true);
-                                      }}
-                                      className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition"
-                                      title="运行"
-                                    >
-                                      <Icon icon="fa-solid fa-play" />
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        showConfirm('确认删除', '确定要删除此镜像吗？', async () => {
-                                          await removeImage(image.id, true);
-                                          hideConfirm();
-                                        });
-                                      }}
-                                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                                      title="删除"
-                                    >
-                                      <Icon icon="fa-solid fa-trash" />
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
+                  <ImageList
+                    images={images}
+                    loading={imagesLoading}
+                    error={imagesError}
+                    servers={servers}
+                    selectedServerId={selectedServer.id}
+                    onSelectServer={setSelectedServer}
+                    onAddServer={() => setShowServerForm(true)}
+                    onRefresh={loadImages}
+                    onPullImage={() => {
+                      showPrompt(
+                        '下载镜像',
+                        '请输入要下载的镜像名称 (例如: nginx:latest)',
+                        async (value) => {
+                          if (!value.trim()) return;
+                          try {
+                            await pullImage(value.trim());
+                            showAlert('下载成功', `镜像 ${value} 已成功下载`, 'success');
+                          } catch (e: any) {
+                            showAlert('下载失败', e.message, 'error');
+                          } finally {
+                            hidePrompt();
+                          }
+                        },
+                        '',
+                        'image:tag'
+                      );
+                    }}
+                    onPruneImages={pruneImages}
+                    onUpdateImage={(repoTag) => {
+                      showConfirm('确认更新', `确定要拉取最新版本的 ${repoTag} 吗？`, async () => {
+                        try {
+                          await pullImage(repoTag);
+                          showAlert('更新成功', '镜像已更新到最新版本', 'success');
+                        } catch (e: any) {
+                          showAlert('更新失败', e.message, 'error');
+                        } finally {
+                          hideConfirm();
+                        }
+                      }, 'primary');
+                    }}
+                    onRunImage={(tag, id) => {
+                      setContainerModalMode('run');
+                      setSelectedImageForRun(tag !== '<none>:<none>' ? tag : id);
+                      setShowContainerModal(true);
+                    }}
+                    onDeleteImage={(id) => {
+                      showConfirm('确认删除', '确定要删除此镜像吗？', async () => {
+                        await removeImage(id, true);
+                        hideConfirm();
+                      });
+                    }}
+                  />
                 )}
 
                 {/* Networks View */}
                 {activeView === 'networks' && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-4 overflow-hidden">
-                        <h2 className="text-xl font-bold text-gray-800 whitespace-nowrap">网络列表</h2>
-                        <ServerTabs
-                          servers={servers}
-                          selectedServerId={selectedServer.id}
-                          onSelect={setSelectedServer}
-                          onAddServer={() => setShowServerForm(true)}
-                        />
-                      </div>
-                      <button onClick={() => loadNetworks()} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)] transition">
-                        <Icon icon="fa-solid fa-refresh" />
-                        <span>刷新</span>
-                      </button>
-                    </div>
-                    {networksLoading ? (
-                      <div className="flex justify-center py-12">
-                        <div className="w-8 h-8 border-4 border-[var(--theme-primary)] border-t-transparent rounded-full animate-spin"></div>
-                      </div>
-                    ) : networksError ? (
-                      <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
-                        <Icon icon="fa-solid fa-triangle-exclamation" className="text-4xl text-red-500 mb-4" />
-                        <h3 className="text-lg font-bold text-red-700 mb-2">无法加载网络列表</h3>
-                        <p className="text-red-600">{networksError}</p>
-                      </div>
-                    ) : (
-                      <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
-                        <table className="w-full text-left border-collapse">
-                          <thead className="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-500 font-medium">
-                            <tr>
-                              <th className="px-6 py-3">名称 / ID</th>
-                              <th className="px-6 py-3">驱动</th>
-                              <th className="px-6 py-3">范围</th>
-                              <th className="px-6 py-3">内部</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-100">
-                            {networks.length === 0 ? (
-                              <tr>
-                                <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
-                                  暂无网络
-                                </td>
-                              </tr>
-                            ) : networks.map(network => (
-                              <tr key={network.id} className="hover:bg-gray-50/50 transition-colors">
-                                <td className="px-6 py-4">
-                                  <div className="font-bold text-gray-800">{network.name}</div>
-                                  <div className="text-xs text-gray-400 font-mono mt-0.5">{network.id ? network.id.substring(0, 12) : '-'}</div>
-                                </td>
-                                <td className="px-6 py-4 text-sm text-gray-600">{network.driver}</td>
-                                <td className="px-6 py-4 text-sm text-gray-600">{network.scope}</td>
-                                <td className="px-6 py-4 text-sm text-gray-600">
-                                  {network.internal ? (
-                                    <span className="text-green-600 bg-green-50 px-2 py-0.5 rounded text-xs">Yes</span>
-                                  ) : (
-                                    <span className="text-gray-400 bg-gray-50 px-2 py-0.5 rounded text-xs">No</span>
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
+                  <NetworkList
+                    networks={networks}
+                    loading={networksLoading}
+                    error={networksError}
+                    servers={servers}
+                    selectedServerId={selectedServer.id}
+                    onSelectServer={setSelectedServer}
+                    onAddServer={() => setShowServerForm(true)}
+                    onRefresh={loadNetworks}
+                  />
                 )}
 
                 {/* Volumes View */}
                 {activeView === 'volumes' && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-4 overflow-hidden">
-                        <h2 className="text-xl font-bold text-gray-800 whitespace-nowrap">卷列表</h2>
-                        <ServerTabs
-                          servers={servers}
-                          selectedServerId={selectedServer.id}
-                          onSelect={setSelectedServer}
-                          onAddServer={() => setShowServerForm(true)}
-                        />
-                      </div>
-                      <div className="flex gap-2 flex-shrink-0">
-                        <button onClick={() => pruneVolumes()} className="px-4 py-2 bg-orange-50 text-orange-600 border border-orange-200 rounded-lg hover:bg-orange-100 text-sm transition">清理未使用</button>
-                        <button onClick={() => loadVolumes()} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)] transition">
-                          <Icon icon="fa-solid fa-refresh" />
-                          <span>刷新</span>
-                        </button>
-                      </div>
-                    </div>
-                    {volumesLoading ? (
-                      <div className="flex justify-center py-12">
-                        <div className="w-8 h-8 border-4 border-[var(--theme-primary)] border-t-transparent rounded-full animate-spin"></div>
-                      </div>
-                    ) : volumesError ? (
-                      <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
-                        <Icon icon="fa-solid fa-triangle-exclamation" className="text-4xl text-red-500 mb-4" />
-                        <h3 className="text-lg font-bold text-red-700 mb-2">无法加载卷列表</h3>
-                        <p className="text-red-600">{volumesError}</p>
-                      </div>
-                    ) : (
-                      <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
-                        <table className="w-full text-left border-collapse">
-                          <thead className="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-500 font-medium">
-                            <tr>
-                              <th className="px-6 py-3">卷名称</th>
-                              <th className="px-6 py-3">驱动</th>
-                              <th className="px-6 py-3 text-right">操作</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-100">
-                            {volumes.length === 0 ? (
-                              <tr>
-                                <td colSpan={3} className="px-6 py-12 text-center text-gray-500">
-                                  暂无卷
-                                </td>
-                              </tr>
-                            ) : volumes.map(volume => (
-                              <tr key={volume.name} className="hover:bg-gray-50/50 transition-colors">
-                                <td className="px-6 py-4">
-                                  <div className="font-bold text-gray-800">{volume.name}</div>
-                                </td>
-                                <td className="px-6 py-4 text-sm text-gray-600">{volume.driver}</td>
-                                <td className="px-6 py-4 text-right">
-                                  <button
-                                    onClick={() => {
-                                      showConfirm('确认删除', '确定要删除此卷吗？', async () => {
-                                        await removeVolume(volume.name, true);
-                                        hideConfirm();
-                                      });
-                                    }}
-                                    className="px-3 py-1.5 text-sm bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition self-start md:self-center"
-                                  >
-                                    删除
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
+                  <VolumeList
+                    volumes={volumes}
+                    loading={volumesLoading}
+                    error={volumesError}
+                    servers={servers}
+                    selectedServerId={selectedServer.id}
+                    onSelectServer={setSelectedServer}
+                    onAddServer={() => setShowServerForm(true)}
+                    onRefresh={loadVolumes}
+                    onPruneVolumes={pruneVolumes}
+                    onDeleteVolume={(name) => {
+                      showConfirm('确认删除', '确定要删除此卷吗？', async () => {
+                        await removeVolume(name, true);
+                        hideConfirm();
+                      });
+                    }}
+                  />
                 )}
               </>
             )}
@@ -924,7 +569,7 @@ function DockerApp() {
                 <div className="grid grid-cols-1 gap-4">
                   {servers.map(server => (
                     <div key={server.id} className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-0">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
                             <span className={`w-3 h-3 rounded-full ${server.status === 'online' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'bg-red-500'}`}></span>
@@ -938,7 +583,7 @@ function DockerApp() {
                             <span>延迟: {server.latency}ms</span>
                           </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2 justify-end md:justify-start">
                           <button
                             onClick={async () => {
                               try {

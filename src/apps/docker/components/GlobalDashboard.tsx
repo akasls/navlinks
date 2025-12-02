@@ -162,8 +162,8 @@ const GlobalDashboard: React.FC<GlobalDashboardProps> = ({ servers, onSelectServ
                                 >
                                     <div className={`absolute top-0 left-0 w-1 h-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}></div>
                                     <div className="p-5">
-                                        <div className="flex justify-between items-start mb-3">
-                                            <div className="flex-1">
+                                        <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-3 gap-2 md:gap-0">
+                                            <div className="flex-1 w-full md:w-auto">
                                                 <h3 className="font-bold text-lg text-gray-800 group-hover:text-[var(--theme-primary)] transition flex items-center gap-2">
                                                     {server.name}
                                                     {server.is_default === 1 && <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded border border-gray-200">DEFAULT</span>}
@@ -175,7 +175,7 @@ const GlobalDashboard: React.FC<GlobalDashboardProps> = ({ servers, onSelectServ
                                                     {isOnline && <span>{server.latency}ms</span>}
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity self-end md:self-auto">
                                                 {server.is_default !== 1 && (
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); onSetDefault(server.id); }}

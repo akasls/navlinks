@@ -140,6 +140,7 @@ CREATE TABLE IF NOT EXISTS docker_servers (
     -- SSH配置
     ssh_user TEXT,
     ssh_password TEXT,
+    ssh_private_key TEXT,
     ssh_port INTEGER DEFAULT 22,
     
     -- 状态信息
