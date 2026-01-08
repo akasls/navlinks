@@ -1,23 +1,25 @@
 version: '3.8'
 
 services:
-  navlink-web:
-    build: .
-    container_name: navlink-container
+  navlink:
+    # 使用预构建镜像（推荐）
+    image: ghcr.io/txwebroot/navlinks:latest
+    # 如需本地构建，取消下行注释并注释上面的 image
+    # build: .
+    container_name: navlink
     ports:
       - "8088:80"
     volumes:
-      # 数据持久化（包括 uploads、数据库、JSON 等所有数据）
+      # 数据持久化（包括 uploads、数据库等所有数据）
       - ./data:/app/data
-      # 挂载 Docker Socket（用于Docker应用）
+      # 挂载 Docker Socket（用于 Docker 管理功能）
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - PORT=80
       - NODE_ENV=production
-      - JWT_SECRET=navlink_production_secret_key_2024_change_me
-      - ADMIN_PASSWORD=admin
+      - JWT_SECRET=your_secret_key_change_me # 请修改为随机字符串
+      - ADMIN_PASSWORD=admin # 请修改默认密码
     restart: always
-    # 健康检查（推荐）
     healthcheck:
       test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/api/subscriptions" ]
       interval: 30s
