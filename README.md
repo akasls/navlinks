@@ -6,6 +6,7 @@
 
 > 一个现代化、模块化的私有应用集成平台，提供导航站、订阅管理和Docker管理等多个实用应用。
 
+<img width="1893" height="883" alt="index" src="https://github.com/user-attachments/assets/5c706603-5268-4042-adaf-5cd51c2579eb" /><img width="1888" height="883" alt="index2" src="https://github.com/user-attachments/assets/0cb3f79f-d4fb-4dc1-9671-b452eaf24533" /><img width="1872" height="863" alt="b-1" src="https://github.com/user-attachments/assets/8398e7ab-4a12-4d6d-a73a-82330914e9c5" /><img width="1908" height="866" alt="vps" src="https://github.com/user-attachments/assets/e71b6177-5c7e-435e-9d8c-29a65ce40021" /><img width="1897" height="869" alt="docker" src="https://github.com/user-attachments/assets/a69a87a3-f2fd-413b-bb8c-3d811e82ec69" /><img width="1899" height="875" alt="sub" src="https://github.com/user-attachments/assets/e4d9378c-9c3d-41b4-a0dc-2e144a14738a" />
 
 
 ## ✨ 核心特性
