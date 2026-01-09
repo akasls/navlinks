@@ -1,4 +1,4 @@
-# 2.0重大重构版本，暂未开源(需要邀请注册码)
+# 2.0重构版本，暂未开源(需要邀请注册码)
  ## github地址：https://github.com/txwebroot/Navlink-Releases
  ## 项目网站：www.webxx.top
  ## 如何获得邀请注册码：访问项目网站，加入交流群
